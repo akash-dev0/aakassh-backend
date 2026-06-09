@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin — Aakassh.Creates</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --sky2: #5bc8f5; --sky3: #0ea5e9; --sky4: #0284c7;
+    --gold: #f8c843; --dark: #071829; --mid: #0d2f4a;
+    --glass: rgba(255,255,255,0.07); --glass-b: rgba(255,255,255,0.14);
+    --green: #22c55e; --red: #ef4444; --amber: #f59e0b;
+    --font: 'Space Grotesk', sans-serif; --font-d: 'Syne', sans-serif;
+  }
+  body { font-family: var(--font); background: var(--dark); color: #fff; min-height: 100vh; }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh;
+    background: radial-gradient(ellipse at 60% 40%, rgba(14,165,233,0.15), transparent 60%),
+                radial-gradient(ellipse at 20% 80%, rgba(248,200,67,0.08), transparent 50%),
+                var(--dark);
+  }
+  .login-card {
+    background: var(--glass); border: 1px solid var(--glass-b);
+    border-radius: 1.5rem; padding: 2.5rem; width: 100%; max-width: 400px;
+    backdrop-filter: blur(16px);
+  }
+  .login-logo { font-family: var(--font-d); font-size: 1.6rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--sky2), var(--gold));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 0.25rem; }
+  .login-sub { color: rgba(255,255,255,0.45); font-size: 0.85rem; margin-bottom: 2rem; }
+  .field { margin-bottom: 1.25rem; }
+  .field label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.45); margin-bottom: 0.5rem; }
+  .field input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px; padding: 0.75rem 1rem; color: #fff; font-family: var(--font); font-size: 0.9rem;
+    outline: none; transition: border-color 0.2s; }
+  .field input:focus { border-color: var(--sky3); }
+  .login-btn { width: 100%; padding: 0.85rem; background: linear-gradient(135deg, var(--sky3), var(--sky4));
+    color: #fff; border: none; border-radius: 100px; font-family: var(--font); font-size: 1rem;
+    font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+  .login-btn:hover { opacity: 0.88; }
+  #login-err { margin-top: 0.75rem; font-size: 0.85rem; color: var(--red); text-align: center; display: none; }
+
+  /* ── APP SHELL ── */
+  #app { display: none; }
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 240px;
+    background: rgba(7,24,41,0.95); border-right: 1px solid var(--glass-b);
+    padding: 1.5rem 1.25rem; display: flex; flex-direction: column; gap: 0.5rem;
+    backdrop-filter: blur(12px); z-index: 50;
+  }
+  .sidebar-logo { font-family: var(--font-d); font-size: 1.2rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--sky2), var(--gold));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 1.5rem; padding-left: 0.5rem; }
+  .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 0.75rem;
+    border-radius: 10px; cursor: pointer; font-size: 0.9rem; color: rgba(255,255,255,0.55);
+    transition: all 0.2s; font-weight: 500; border: none; background: none; width: 100%; text-align: left; }
+  .nav-item:hover { background: var(--glass); color: #fff; }
+  .nav-item.active { background: rgba(14,165,233,0.18); color: var(--sky2); }
+  .nav-item .icon { font-size: 1.1rem; width: 20px; text-align: center; }
+  .sidebar-logout { margin-top: auto; }
+
+  .main { margin-left: 240px; padding: 2rem 2.5rem; min-height: 100vh; }
+  .page-header { margin-bottom: 2rem; }
+  .page-title { font-family: var(--font-d); font-size: 1.8rem; font-weight: 800; }
+  .page-sub { color: rgba(255,255,255,0.45); font-size: 0.9rem; margin-top: 0.25rem; }
+
+  /* ── STATS CARDS ── */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 1.25rem;
+    padding: 1.5rem; text-align: center; }
+  .stat-num { font-family: var(--font-d); font-size: 2rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--sky2), var(--gold));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .stat-label { font-size: 0.75rem; color: rgba(255,255,255,0.45); text-transform: uppercase;
+    letter-spacing: 0.08em; margin-top: 0.25rem; }
+
+  /* ── FILTERS ── */
+  .filter-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .filter-btn { padding: 0.35rem 1rem; border-radius: 100px; font-size: 0.8rem; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--glass-b); background: transparent;
+    color: rgba(255,255,255,0.55); transition: all 0.2s; font-family: var(--font); }
+  .filter-btn.active, .filter-btn:hover { background: linear-gradient(135deg, var(--sky3), var(--sky4));
+    border-color: transparent; color: #fff; }
+
+  /* ── TABLE ── */
+  .table-wrap { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 1.25rem;
+    overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { padding: 1rem 1.25rem; text-align: left; font-size: 0.72rem; text-transform: uppercase;
+    letter-spacing: 0.1em; color: rgba(255,255,255,0.4); border-bottom: 1px solid var(--glass-b);
+    background: rgba(0,0,0,0.2); }
+  tbody tr { border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.15s; cursor: pointer; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(14,165,233,0.06); }
+  td { padding: 1rem 1.25rem; font-size: 0.875rem; }
+  .td-name { font-weight: 600; }
+  .td-email { color: rgba(255,255,255,0.55); font-size: 0.8rem; }
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 100px; font-size: 0.72rem; font-weight: 600; }
+  .badge-new     { background: rgba(14,165,233,0.2); color: var(--sky2); }
+  .badge-read    { background: rgba(248,200,67,0.15); color: var(--gold); }
+  .badge-replied { background: rgba(34,197,94,0.15); color: var(--green); }
+  .badge-closed  { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); }
+  .td-date { color: rgba(255,255,255,0.4); font-size: 0.8rem; }
+  #no-results { text-align: center; padding: 3rem; color: rgba(255,255,255,0.3); }
+
+  /* ── MODAL ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200;
+    display: none; align-items: center; justify-content: center; padding: 1rem; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #0a2035; border: 1px solid var(--glass-b); border-radius: 1.5rem;
+    padding: 2rem; max-width: 560px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  .modal-header { display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 1.5rem; }
+  .modal-title { font-family: var(--font-d); font-size: 1.3rem; font-weight: 700; }
+  .modal-close { background: none; border: none; color: rgba(255,255,255,0.4); font-size: 1.4rem;
+    cursor: pointer; transition: color 0.2s; line-height: 1; }
+  .modal-close:hover { color: #fff; }
+  .modal-row { margin-bottom: 1rem; }
+  .modal-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.35); margin-bottom: 0.3rem; }
+  .modal-value { font-size: 0.95rem; }
+  .modal-msg { background: rgba(14,165,233,0.07); border-left: 3px solid var(--sky3);
+    padding: 1rem; border-radius: 0 8px 8px 0; line-height: 1.65; font-size: 0.9rem;
+    color: rgba(255,255,255,0.8); white-space: pre-wrap; }
+  .modal-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.5rem; }
+  .action-btn { padding: 0.5rem 1.1rem; border-radius: 100px; font-size: 0.82rem; font-weight: 600;
+    cursor: pointer; border: 1px solid var(--glass-b); background: transparent; color: #fff;
+    font-family: var(--font); transition: all 0.2s; }
+  .action-btn:hover { background: var(--glass); border-color: var(--sky3); }
+  .action-btn.danger { border-color: rgba(239,68,68,0.4); color: var(--red); }
+  .action-btn.danger:hover { background: rgba(239,68,68,0.1); }
+  .action-btn.primary { background: linear-gradient(135deg, var(--sky3), var(--sky4)); border-color: transparent; }
+
+  /* ── LOADING ── */
+  #loading { text-align: center; padding: 3rem; color: rgba(255,255,255,0.4); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .sidebar { width: 60px; padding: 1rem 0.5rem; }
+    .sidebar-logo, .nav-item span:not(.icon) { display: none; }
+    .main { margin-left: 60px; padding: 1.25rem; }
+    table { display: block; overflow-x: auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">Aakassh.Creates</div>
+    <div class="login-sub">Admin Dashboard — Sign in to continue</div>
+    <div class="field"><label>Username</label><input type="text" id="l-user" placeholder="Username" autocomplete="username" /></div>
+    <div class="field"><label>Password</label><input type="password" id="l-pass" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" /></div>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <div id="login-err">Invalid credentials. Please try again.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Aakassh.Creates</div>
+    <button class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+      <span class="icon">📊</span><span>Dashboard</span>
+    </button>
+    <button class="nav-item" onclick="showPage('enquiries')" id="nav-enquiries">
+      <span class="icon">📬</span><span>Enquiries</span>
+    </button>
+    <div class="sidebar-logout">
+      <button class="nav-item" onclick="doLogout()">
+        <span class="icon">🚪</span><span>Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+    <!-- Dashboard page -->
+    <div id="page-dashboard">
+      <div class="page-header">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Overview of all enquiries</div>
+      </div>
+      <div class="stats-row" id="stats-row">
+        <div class="stat-card"><div class="stat-num" id="s-total">—</div><div class="stat-label">Total</div></div>
+        <div class="stat-card"><div class="stat-num" id="s-today">—</div><div class="stat-label">Today</div></div>
+        <div class="stat-card"><div class="stat-num" id="s-new">—</div><div class="stat-label">New</div></div>
+        <div class="stat-card"><div class="stat-num" id="s-replied">—</div><div class="stat-label">Replied</div></div>
+      </div>
+      <!-- recent 5 -->
+      <div class="page-header" style="margin-top:1rem">
+        <div class="page-title" style="font-size:1.2rem">Recent Enquiries</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Service</th><th>Budget</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody id="recent-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Enquiries page -->
+    <div id="page-enquiries" style="display:none">
+      <div class="page-header">
+        <div class="page-title">All Enquiries</div>
+        <div class="page-sub">Click any row to view details and update status</div>
+      </div>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="applyFilter('all',this)">All</button>
+        <button class="filter-btn" onclick="applyFilter('new',this)">New</button>
+        <button class="filter-btn" onclick="applyFilter('read',this)">Read</button>
+        <button class="filter-btn" onclick="applyFilter('replied',this)">Replied</button>
+        <button class="filter-btn" onclick="applyFilter('closed',this)">Closed</button>
+        <button class="filter-btn" style="margin-left:auto" onclick="loadEnquiries()">↻ Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <div id="loading">Loading enquiries…</div>
+        <table id="enq-table" style="display:none">
+          <thead><tr><th>#</th><th>Name</th><th>Service</th><th>Budget</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody id="enq-tbody"></tbody>
+        </table>
+        <div id="no-results" style="display:none">No enquiries found.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="m-title">Enquiry Details</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="m-body"></div>
+    <div class="modal-actions" id="m-actions"></div>
+  </div>
+</div>
+
+<script>
+const API = '/api';
+let token = localStorage.getItem('ac_token') || '';
+let allEnquiries = [];
+let currentFilter = 'all';
+
+// ── AUTH ──────────────────────────────────────────────────────────
+async function doLogin() {
+  const user = document.getElementById('l-user').value.trim();
+  const pass = document.getElementById('l-pass').value;
+  const errEl = document.getElementById('login-err');
+  errEl.style.display = 'none';
+
+  try {
+    const res = await fetch(`${API}/admin/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user, password: pass }),
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.style.display = 'block'; return; }
+    token = data.token;
+    localStorage.setItem('ac_token', token);
+    showApp();
+  } catch (e) {
+    errEl.textContent = 'Server unreachable. Is the backend running?';
+    errEl.style.display = 'block';
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem('ac_token');
+  token = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadStats();
+  loadRecentEnquiries();
+}
+
+// Check if already logged in
+if (token) {
+  showApp();
+}
+
+// ── AUTH FETCH ────────────────────────────────────────────────────
+async function authFetch(url, opts = {}) {
+  opts.headers = { ...opts.headers, 'Authorization': `Bearer ${token}` };
+  const res = await fetch(url, opts);
+  if (res.status === 401) { doLogout(); return null; }
+  return res;
+}
+
+// ── STATS ─────────────────────────────────────────────────────────
+async function loadStats() {
+  const res = await authFetch(`${API}/admin/stats`);
+  if (!res) return;
+  const s = await res.json();
+  document.getElementById('s-total').textContent   = s.total   ?? '—';
+  document.getElementById('s-today').textContent   = s.today_count ?? '—';
+  document.getElementById('s-new').textContent     = s.new_count ?? '—';
+  document.getElementById('s-replied').textContent = s.replied_count ?? '—';
+}
+
+// ── RECENT ────────────────────────────────────────────────────────
+async function loadRecentEnquiries() {
+  const res = await authFetch(`${API}/admin/enquiries`);
+  if (!res) return;
+  const rows = await res.json();
+  const tbody = document.getElementById('recent-tbody');
+  tbody.innerHTML = rows.slice(0, 5).map(r => `
+    <tr onclick="openModal(${r.id})">
+      <td><div class="td-name">${esc(r.name)}</div><div class="td-email">${esc(r.email)}</div></td>
+      <td>${esc(r.service)}</td>
+      <td>${esc(r.budget || '—')}</td>
+      <td><span class="badge badge-${r.status}">${r.status}</span></td>
+      <td class="td-date">${fmtDate(r.created_at)}</td>
+    </tr>`).join('');
+}
+
+// ── ENQUIRIES ─────────────────────────────────────────────────────
+async function loadEnquiries() {
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('enq-table').style.display = 'none';
+  document.getElementById('no-results').style.display = 'none';
+
+  const url = currentFilter === 'all'
+    ? `${API}/admin/enquiries`
+    : `${API}/admin/enquiries?status=${currentFilter}`;
+  const res = await authFetch(url);
+  if (!res) return;
+  allEnquiries = await res.json();
+  renderTable(allEnquiries);
+}
+
+function renderTable(rows) {
+  document.getElementById('loading').style.display = 'none';
+  if (!rows.length) { document.getElementById('no-results').style.display = 'block'; return; }
+  document.getElementById('enq-table').style.display = 'table';
+  document.getElementById('enq-tbody').innerHTML = rows.map(r => `
+    <tr onclick="openModal(${r.id})">
+      <td class="td-date">#${r.id}</td>
+      <td><div class="td-name">${esc(r.name)}</div><div class="td-email">${esc(r.email)}</div></td>
+      <td>${esc(r.service)}</td>
+      <td>${esc(r.budget || '—')}</td>
+      <td><span class="badge badge-${r.status}">${r.status}</span></td>
+      <td class="td-date">${fmtDate(r.created_at)}</td>
+    </tr>`).join('');
+}
+
+function applyFilter(status, btn) {
+  document.querySelectorAll('.filter-row .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = status;
+  loadEnquiries();
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────
+async function openModal(id) {
+  const res = await authFetch(`${API}/admin/enquiries/${id}`);
+  if (!res) return;
+  const r = await res.json();
+
+  document.getElementById('m-title').textContent = `Enquiry #${r.id} — ${r.name}`;
+  document.getElementById('m-body').innerHTML = `
+    <div class="modal-row"><div class="modal-label">Status</div>
+      <div class="modal-value"><span class="badge badge-${r.status}">${r.status}</span></div></div>
+    <div class="modal-row"><div class="modal-label">Name</div><div class="modal-value">${esc(r.name)}</div></div>
+    <div class="modal-row"><div class="modal-label">Email</div>
+      <div class="modal-value"><a href="mailto:${esc(r.email)}" style="color:var(--sky2)">${esc(r.email)}</a></div></div>
+    <div class="modal-row"><div class="modal-label">Service</div><div class="modal-value">${esc(r.service)}</div></div>
+    <div class="modal-row"><div class="modal-label">Budget</div><div class="modal-value">${esc(r.budget || 'Not specified')}</div></div>
+    <div class="modal-row"><div class="modal-label">Received</div><div class="modal-value">${fmtDate(r.created_at)}</div></div>
+    <div class="modal-row"><div class="modal-label">Message</div><div class="modal-msg">${esc(r.message)}</div></div>
+  `;
+
+  const statuses = ['new','read','replied','closed'].filter(s => s !== r.status);
+  document.getElementById('m-actions').innerHTML =
+    `<a href="mailto:${esc(r.email)}?subject=Re:%20Your%20enquiry%20%E2%80%94%20Aakassh.Creates" 
+        class="action-btn primary" target="_blank">Reply via Email →</a>` +
+    statuses.map(s =>
+      `<button class="action-btn" onclick="setStatus(${r.id},'${s}')">Mark ${s}</button>`
+    ).join('') +
+    `<button class="action-btn danger" onclick="deleteEnquiry(${r.id})">Delete</button>`;
+
+  document.getElementById('modal-overlay').classList.add('open');
+
+  // Auto-mark as read if new
+  if (r.status === 'new') setStatus(r.id, 'read', true);
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay')) return;
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+async function setStatus(id, status, silent = false) {
+  const res = await authFetch(`${API}/admin/enquiries/${id}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  });
+  if (!res) return;
+  if (!silent) {
+    document.getElementById('modal-overlay').classList.remove('open');
+    loadStats();
+    if (document.getElementById('page-enquiries').style.display !== 'none') loadEnquiries();
+    else loadRecentEnquiries();
+  }
+}
+
+async function deleteEnquiry(id) {
+  if (!confirm('Delete this enquiry permanently?')) return;
+  const res = await authFetch(`${API}/admin/enquiries/${id}`, { method: 'DELETE' });
+  if (!res) return;
+  document.getElementById('modal-overlay').classList.remove('open');
+  loadStats();
+  loadEnquiries();
+  loadRecentEnquiries();
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────
+function showPage(page) {
+  ['dashboard','enquiries'].forEach(p => {
+    document.getElementById(`page-${p}`).style.display = p === page ? 'block' : 'none';
+    document.getElementById(`nav-${p}`).classList.toggle('active', p === page);
+  });
+  if (page === 'enquiries') loadEnquiries();
+  if (page === 'dashboard') { loadStats(); loadRecentEnquiries(); }
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function esc(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtDate(dt) {
+  if (!dt) return '—';
+  return new Date(dt + (dt.endsWith('Z') ? '' : 'Z')).toLocaleString('en-IN', {
+    day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
+  });
+}
+</script>
+</body>
+</html>
