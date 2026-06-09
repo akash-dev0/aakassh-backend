@@ -18,7 +18,6 @@ const validateContact = [
   body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
   body('email').trim().isEmail().normalizeEmail().withMessage('Please provide a valid email address'),
   body('service').trim().isIn(['Video Editing', 'Web Development', 'Graphic Design', 'Motion Graphics', 'E-Commerce', 'SEO & Performance', 'Full package']).withMessage('Please select a valid service'),
-  body('budget').optional({ nullable: true, checkFalsy: true }).trim().isIn(['Under ₹5,000', '₹5,000 – ₹15,000', '₹15,000 – ₹30,000', '₹30,000+']),
   body('message').trim().isLength({ min: 10, max: 2000 }).withMessage('Message must be between 10 and 2000 characters'),
 ];
 
