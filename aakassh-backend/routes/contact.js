@@ -1,4 +1,3 @@
-// routes/contact.js — Public contact form endpoint
 const express   = require('express');
 const { body, validationResult } = require('express-validator');
 const rateLimit  = require('express-rate-limit');
@@ -7,47 +6,23 @@ const { notifyAll } = require('../notifications');
 
 const router = express.Router();
 
-// ── Rate limit: 5 submissions per IP per hour ──────────────────────
 const contactLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
+  windowMs: 60 * 60 * 1000,
   max: 5,
   message: { error: 'Too many submissions from this IP. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-// ── Validation rules ───────────────────────────────────────────────
 const validateContact = [
-  body('name')
-    .trim()
-    .isLength({ min: 2, max: 100 })
-    .withMessage('Name must be between 2 and 100 characters'),
-
-  body('email')
-    .trim()
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Please provide a valid email address'),
-
-  body('service')
-    .trim()
-    .isIn(['Video Editing', 'Web Development', 'Graphic Design', 'Motion Graphics', 'E-Commerce', 'SEO & Performance', 'Full package'])
-    .withMessage('Please select a valid service'),
-
-  body('budget')
-    .optional({ nullable: true, checkFalsy: true })
-    .trim()
-    .isIn(['Under ₹5,000', '₹5,000 – ₹15,000', '₹15,000 – ₹30,000', '₹30,000+']),
-
-  body('message')
-    .trim()
-    .isLength({ min: 10, max: 2000 })
-    .withMessage('Message must be between 10 and 2000 characters'),
+  body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
+  body('email').trim().isEmail().normalizeEmail().withMessage('Please provide a valid email address'),
+  body('service').trim().isIn(['Video Editing', 'Web Development', 'Graphic Design', 'Motion Graphics', 'E-Commerce', 'SEO & Performance', 'Full package']).withMessage('Please select a valid service'),
+  body('budget').optional({ nullable: true, checkFalsy: true }).trim().isIn(['Under ₹5,000', '₹5,000 – ₹15,000', '₹15,000 – ₹30,000', '₹30,000+']),
+  body('message').trim().isLength({ min: 10, max: 2000 }).withMessage('Message must be between 10 and 2000 characters'),
 ];
 
-// ── POST /api/contact ──────────────────────────────────────────────
 router.post('/', contactLimiter, validateContact, async (req, res) => {
-  // Validation errors
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(422).json({
@@ -60,11 +35,9 @@ router.post('/', contactLimiter, validateContact, async (req, res) => {
   const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
 
   try {
-    // Save to database
-    const result = stmts.insertEnquiry.run({ name, email, service, budget: budget || null, message, ip });
+    const result = await stmts.insertEnquiry({ name, email, service, budget: budget || null, message, ip });
     const enquiryId = result.lastInsertRowid;
 
-    // Fire notifications asynchronously (don't make the user wait)
     notifyAll({ name, email, service, budget, message }).catch(err =>
       console.error('[Notifications] Error:', err.message)
     );
